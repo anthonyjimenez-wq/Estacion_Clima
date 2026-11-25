@@ -1,0 +1,43 @@
+name: Registrar Estacion Meteorologica
+
+on:
+  schedule:
+    - cron: "3,13,23,33,43,53 * * * *" # Cada 10 minutos, fuera de minutos pico
+  workflow_dispatch: # Permite ejecutarlo manualmente para pruebas
+
+permissions:
+  contents: write
+
+concurrency:
+  group: registro-clima
+  cancel-in-progress: false
+
+jobs:
+  registrar:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Instalar tinytuya
+        run: pip install tinytuya
+
+      - name: Leer sensores y actualizar CSV
+        env:
+          TUYA_API_KEY: ${{ secrets.TUYA_API_KEY }}
+          TUYA_API_SECRET: ${{ secrets.TUYA_API_SECRET }}
+          TUYA_DEVICE_ID: ${{ secrets.TUYA_DEVICE_ID }}
+        run: python registrar_una_vez.py
+
+      - name: Guardar cambios en el repositorio
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add datos_estacion.csv
+          git diff --staged --quiet || git commit -m "Nuevo registro meteorologico"
+          git push
