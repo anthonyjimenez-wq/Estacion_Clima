@@ -1,9 +1,7 @@
 name: Registrar Estacion Meteorologica
 
 on:
-  schedule:
-    - cron: "3,13,23,33,43,53 * * * *" # Cada 10 minutos, fuera de minutos pico
-  workflow_dispatch: # Permite ejecutarlo manualmente para pruebas
+  workflow_dispatch:
 
 permissions:
   contents: write
